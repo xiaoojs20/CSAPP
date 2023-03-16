@@ -1,6 +1,6 @@
 /* 
  * CS:APP Data Lab 
- * xiaojinsong 2020010563
+ * 
  * <Please put your name and userid here>
  * 
  * bits.c - Source file with your solutions to the Lab.
@@ -138,8 +138,10 @@ NOTES:
  *   Max ops: 8
  *   Rating: 1
  */
-int bitAnd(int x, int y) {
-  return ~(~x|~y);
+int bitAnd(int x, int y) 
+{
+  int z = ~((~x)|(~y));
+  return z;
 }
 /* 
  * getByte - Extract byte n from word x
@@ -149,8 +151,11 @@ int bitAnd(int x, int y) {
  *   Max ops: 6
  *   Rating: 2
  */
-int getByte(int x, int n) {
-  return (x>>(n<<3))&0xFF;
+int getByte(int x, int n) 
+{
+  int place = n<<3; //put what you want to the rightest
+  int ans = (x >> place) & 0xff;//extract what you want
+  return ans;
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
@@ -160,9 +165,14 @@ int getByte(int x, int n) {
  *   Max ops: 20
  *   Rating: 3 
  */
-int logicalShift(int x, int n) {
-  int mask = ~(((1<<31)>>n)<<1);
-  return (x>>n) & mask; 
+int logicalShift(int x, int n) 
+{
+  int anti_auxiliary = 1<<31; int sgn;
+  sgn = (x & anti_auxiliary); //get the first bit of x
+  sgn = (sgn >> n) << 1; //if x<0,let the first n bit of signal become 1, and the rest are 0
+  x = x >> n;
+  x = x ^ sgn;  //eliminate the 1s of the first n bits
+  return x;
 }
 /*
  * bitCount - returns count of number of 1's in word
@@ -171,25 +181,36 @@ int logicalShift(int x, int n) {
  *   Max ops: 40
  *   Rating: 4
  */
-int bitCount(int x) {
-  int by_2, by_4, by_8, by_16, by_32;
-  int add;
-  by_2 = 0x55 | (0x55<<8); //0x5555
-	by_2 = by_2 | (by_2<<16); //0x55555555
-	by_4 = 0x33 | (0x33<<8);
-	by_4 = by_4 | (by_4<<16);
-	by_8 = 0x0F | (0x0F<<8);
-	by_8 = by_8 | (by_8<<16);
-	by_16 = 0xFF | (0xFF<<16);
-	by_32 = 0xFF | (0xFF<<8);
-  add = (x&by_2) + ((x>>1)&by_2);
-  add = (add&by_4) + ((add>>2)&by_4);
-  add = (add&by_8) + ((add>>4)&by_8);
-  add = (add&by_16) + ((add>>8)&by_16);
-  add = (add&by_32) + ((add>>16)&by_32);
-  // printf("%d\n%d\n%d\n%d\n%d\n",by_2,by_4,by_8,by_16,by_32);
-  // printf("a new term \n%d\n", add);  
-  return add;
+int bitCount(int x) 
+{
+
+  int get_every_two = 0x55,get_every_four = 0x33,get_every_eight = 0x0f,get_every_16 = 0xff,get_every_32;   
+
+  int number_each_2, number_each_4,number_each_8,number_each_16,ans;
+
+
+  get_every_two = get_every_two + (get_every_two<<8);
+  get_every_two = get_every_two + (get_every_two<<16); //build 0101010101010101.....
+
+  
+  get_every_four = get_every_four + (get_every_four<<8);
+  get_every_four = get_every_four + (get_every_four<<16); //build 0011001100110011....
+
+  
+  get_every_eight = get_every_eight + (get_every_eight<<8);
+  get_every_eight = get_every_eight + (get_every_eight<<16); //build 0000111100001111....
+
+  
+  get_every_16 = get_every_16 + (get_every_16 << 16);//build 0*8,1*8,0*8,1*8
+
+  get_every_32 = 0xff + (0xff<<8);   //build 0*16,1*16
+
+  number_each_2 = (x & get_every_two) + ((x >> 1) & get_every_two);   //each two numbers: store the numbers of 1 in each 2 numbers in x
+  number_each_4 = (number_each_2 & get_every_four) + ((number_each_2 >> 2) & get_every_four); //each four numbers:store the numbers of 1 in each 4 numbers in x
+  number_each_8 = (number_each_4 & get_every_eight) + ((number_each_4 >> 4) & get_every_eight);
+  number_each_16 = (number_each_8 & get_every_16) + ((number_each_8 >> 8) & get_every_16);
+  ans = (number_each_16 & get_every_32) + ((number_each_16 >> 16) & get_every_32);
+  return ans;
 }
 /* 
  * bang - Compute !x without using !
@@ -198,9 +219,13 @@ int bitCount(int x) {
  *   Max ops: 12
  *   Rating: 4 
  */
-int bang(int x) {
-  int signOR = ((x | (~x+1)) >> 31) & 0x01;
-  return ~signOR & 0x01;
+int bang(int x) 
+{
+  //core:only 0 and -0 has the same signal of 0, others not
+  int reverse = ~x+1;   //get -x
+  int max = 1<<31;    
+  int first_place = (x|reverse)&max;
+  return ((~first_place) >> 31)&1; 
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -208,7 +233,8 @@ int bang(int x) {
  *   Max ops: 4
  *   Rating: 1
  */
-int tmin(void) {
+int tmin(void) 
+{
   return 1<<31;
 }
 /* 
@@ -220,10 +246,13 @@ int tmin(void) {
  *   Max ops: 15
  *   Rating: 2
  */
-int fitsBits(int x, int n) {
-  int minusOne = ~1+1;
-  int highBitNotSame = (x>>(n+minusOne)) ^ (x>>31);
-  return !highBitNotSame;
+int fitsBits(int x, int n) 
+{
+  int whether_32 = n >> 5;//if n = 32, always return 1
+  int min = 1 << 31;
+  int additive = (1 << n >> 1) & (~min);//get 2^(n-1)
+  x += additive;  //if x is, let x be from 0 to 2^n -1
+  return (!(x>>n))|whether_32;  //if n == 32,yes, else,if 0<=x + 2^(n-1)<2^n,yes
 }
 /* 
  * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
@@ -233,13 +262,14 @@ int fitsBits(int x, int n) {
  *   Max ops: 15
  *   Rating: 2
  */
-int divpwr2(int x, int n) {
-  int minusOne = ~1+1;
-  int offset = (0x01<<n)+minusOne;
-  int sign = x>>31;
-  offset &= sign;
-  // printf("%d\n", (x+offset)>>n);
-  return (x+offset)>>n;
+int divpwr2(int x, int n) 
+{
+   int min, signal, signal_n;
+   min = 1<<31;
+   signal = x & min;      //get x's signal
+   signal_n = n & (signal>>31); 
+   x = x + (1<<signal_n) + (~0); //x<0: x+= 2^n - 1, else, x not change
+    return x >> n;
 }
 /* 
  * negate - return -x 
@@ -248,8 +278,11 @@ int divpwr2(int x, int n) {
  *   Max ops: 5
  *   Rating: 2
  */
-int negate(int x) {
-  return ~x+1;
+int negate(int x) 
+{
+  x = ~x;
+  x += 1;
+  return x;
 }
 /* 
  * isPositive - return 1 if x > 0, return 0 otherwise 
@@ -258,11 +291,12 @@ int negate(int x) {
  *   Max ops: 8
  *   Rating: 3
  */
-int isPositive(int x) {
-  int notNeg = !(x>>31);
-  int isZero = !x;
-  // printf("notNeg: %d\nisZero: %d\nisPositive: %d\n", notNeg, isZero, (notNeg ^ isZero));
-  return notNeg ^ isZero;
+int isPositive(int x) 
+{
+  int auxiliary = 1<<31;
+  int a = !!(x & auxiliary);//get the signal of x,if x <0, then a = 1, else a = 0
+  int whether = !x;  //if x = 0, whether = 1, else whether = 0
+  return !(a + whether);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -271,16 +305,20 @@ int isPositive(int x) {
  *   Max ops: 24
  *   Rating: 3
  */
-int isLessOrEqual(int x, int y) {
-  int z = y + (~x+1);
-  int sign = !(z>>31); // sign should be 1, when z >= 0.
-  int xNeg = (x>>31)& 0x01;
-  int yNeg = (y>>31)& 0x01;
-  int notSame = xNeg ^ yNeg;
-  sign = (~notSame & sign) | (notSame & xNeg);
-  // printf("same: %d\t",!notSame);
-  // printf("isLessOrEqual: %d\n",sign);
-  return sign;
+int isLessOrEqual(int x, int y) 
+{
+  int reverse_y = ~y + 1;
+  int substraction = x + reverse_y;
+  int min = 1 << 31;
+
+  //get the sign of x,y,x-y 
+  int sign_x = x & min;
+  int sign_y = y & min;
+  int sign_z = substraction & min;
+
+  int sign_yy = ~sign_y;
+  int last = (sign_x& sign_yy)|(sign_x&sign_z)|(sign_yy&sign_z)|((!substraction)<<31);
+  return (last>>31)&1;
 }
 /*
  * ilog2 - return floor(log base 2 of x), where x > 0
@@ -289,29 +327,55 @@ int isLessOrEqual(int x, int y) {
  *   Max ops: 90
  *   Rating: 4
  */
-int ilog2(int x) {
-  int shift=0;
-  // shift = ((!!(x>>16))<<31>>31)&16;
-  // // printf("%d\n",shift);
-  // shift += ((!!(x>>(8+shift)))<<31>>31)&8;
-  // // printf("%d\n",shift);
-  // shift += ((!!(x>>(4+shift)))<<31>>31)&4;
-  // // printf("%d\n",shift);
-  // shift += ((!!(x>>(2+shift)))<<31>>31)&2;
-  // // printf("%d\n",shift);
-  // shift += ((!!(x>>(1+shift)))<<31>>31)&1;
-  // // printf("%d\n",shift);
+int ilog2(int x) 
+{
+  int current,place;  //current: the current binary string you are handling; place:the least place of current
+  int front,back;     //the first half and second half of current
+  int whether,calculator; //whether:used to judge whether front is 0; calculator:used to renew current and place
 
-  shift = ((!!(x>>16))<<4);
-  // printf("%d\n",shift);
-  shift += ((!!(x>>(8+shift)))<<3);
-  // printf("%d\n",shift);
-  shift += ((!!(x>>(4+shift)))<<2);
-  // printf("%d\n",shift);
-  shift += ((!!(x>>(2+shift)))<<1);
-  // printf("%d\n",shift);
-  shift += ((!!(x>>(1+shift))));
-  return shift;
+  current = x; place = 0;
+
+  //current.length = 32
+  front = current>>16;
+  back = current;
+  whether = !front;
+  calculator = (~whether) + 1;  
+  current = front + (calculator & back);  //if whether==1, front = 0, back remains; else, back is eliminated, front remains 
+  place = place + ((~calculator) & 16);   //if whether == 1, place remains unchanged, else, place += half_the_length
+
+  //current.length = 16
+  front = current>>8;
+  back = current;
+  whether = !front;
+  calculator = (~whether) + 1;
+  current = front + (calculator & back);
+  place = place + ((~calculator) & 8);
+
+  //current.length = 8
+  front = current>>4;
+  back = current;
+  whether = !front;
+  calculator = (~whether) + 1;
+  current = front + (calculator & back);
+  place = place + ((~calculator) & 4);
+
+  //current.length = 4
+  front = current>>2;
+  back = current;
+  whether = !front;
+  calculator = (~whether) + 1;
+  current = front + (calculator & back);
+  place = place + ((~calculator) & 2);
+
+  //current.length = 2
+  front = current>>1;
+  back = current;
+  whether = !front;
+  calculator = (~whether) + 1;
+  current = front + (calculator & back);
+  place = place + ((~calculator) & 1);
+
+  return place;
 }
 /* 
  * float_neg - Return bit-level equivalent of expression -f for
@@ -324,16 +388,19 @@ int ilog2(int x) {
  *   Max ops: 10
  *   Rating: 2
  */
-unsigned float_neg(unsigned uf) {
-  int expMask = 0x7F800000;
-  int fracMask = 0xFF800000;
-  int expAllOne = uf & expMask;
-  int fracZero = uf | fracMask;
- 
-  if(expAllOne == expMask && !(fracZero == fracMask))//NaN
-    return uf;
-  else 
-    return uf^0x80000000;
+unsigned float_neg(unsigned uf) 
+{
+
+ int first;
+ int decimal_judge,exp_judge;
+ exp_judge = ((uf >> 23) ^ 0xff)<<24;     //if exp == 11111111, exp_judge = 0
+ decimal_judge = uf << 9;   //if(decimal == all 0,decimal_judge = 0)
+ first = 1<<31;      //sign
+ if(!decimal_judge || exp_judge)
+ {
+ uf = uf ^ first;
+ }
+  return uf;
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
@@ -344,42 +411,84 @@ unsigned float_neg(unsigned uf) {
  *   Max ops: 30
  *   Rating: 4
  */
-unsigned float_i2f(int x) {
-  int tempx=x, absx=x, discarded=0;
-  int sign=0;
-  int exp=0, frac=0;
-  int sigOne=1<<31;
-  if(x==0)
-    return 0;
-  else if(x==(1<<31))
-    return 0xCF000000;
-  else if(x<0){
-    absx=-x;
-    tempx=-x;
-    sign=sigOne;
+unsigned float_i2f(int x) 
+{
+  int sign;           //the sign of the float
+  int exp,exp_show;   //exp:the 2^n of the first_1, exp_decimal:the 2^n of the second 1
+  int a,ans;          //a:temp used to get exp, ans:result
+
+  //handle min_int
+  int min_int = 1<<31;      
+  int min_int_float;
+  int sign_decimal_up;
+  int decimal,decimal_real,decimal_left;      //store decimal
+  int right_place_decimal, place_minus1 ;    //the place of movement
+  int round_1,round_2;  //all equals 1:decimal ++
+  int removal;          //used to remove the first 1
+  int bias = 127;
+
+  //initialize
+  ans = 0;
+  exp = 126;
+  //min_int = 1 << 31;
+
+  //get and eliminate x's sign
+  if(x >= 0) sign = 0;
+  else
+  {
+    sign = 1;
+    x = -x;
+  } 
+  
+  if(!x) return 0;  //judge 0  
+  if(x == min_int)  //judge MIN_INT
+  {
+    min_int_float = min_int;
+    min_int_float = min_int_float + (158 << 23);
+    return min_int_float;
   }
-  // printf("tempx: %d\n",tempx);
-  while((tempx&sigOne)==0){
-    exp+=1;
-    tempx<<=1;
+
+    a = x;
+
+  while(a) //others
+  {
+    a = a >> 1;
+    exp = exp +1;
   }
-  exp=31-exp;
-  // printf("exp-bias: %d\n",exp);
-  frac=absx-(1<<exp);
-  // printf("frac: %d\n",frac);
-  if(exp<=23){
-    frac=frac<<(23-exp);
+
+  exp_show = exp;
+  exp = exp - bias;
+  ans = sign << 31;
+  ans = ans + (exp_show<<23);
+  //get the exp place and sign
+
+
+  removal = 1<<(exp);
+  decimal = x^removal;
+  //get decimal
+
+  right_place_decimal = 23 - exp;   //>0:left shift, else, right_shift
+  
+  if(right_place_decimal < 0)
+  {
+    //judge round
+    right_place_decimal = -right_place_decimal;
+    place_minus1 = right_place_decimal - 1;
+    sign_decimal_up = 1 << place_minus1;
+    decimal_real = decimal >> right_place_decimal;
+    decimal_left = decimal - (decimal_real<<right_place_decimal);
+    
+
+    round_2 = decimal_real & 1;                       //whether the decimal need to round to even
+    if(round_2 + decimal_left>sign_decimal_up) decimal_real = decimal_real + 1;
   }
-  else{
-    frac=frac>>(exp-23);
-    discarded=tempx&0xFF;
-    if(discarded>0x80 || ((discarded==0x80) && (frac&1))){
-      frac+=1;
-    }
+  else
+  {
+
+     decimal_real = decimal << right_place_decimal;
   }
-  exp=(exp+127)<<23;
-  // printf("sign: %d\nexp: %d\nfrac: %d\nfloat: %d\n",sign,exp,frac,sign+exp+frac);
-  return sign+exp+frac;
+  ans = ans + decimal_real;
+  return ans;
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
@@ -392,41 +501,55 @@ unsigned float_i2f(int x) {
  *   Max ops: 30
  *   Rating: 4
  */
-unsigned float_twice(unsigned uf) {
-  int sign = uf&0x80000000;
-  int exp = uf&0x7F800000;
-  int frac = uf&0x007FFFFF;
-  int expAllZero = (exp == 0);
-  int expAllOne = (exp == 0x7F800000);
-  int twiceExpAllOne = (exp == 0x7F000000);
-  if(expAllOne) ///Nan or Inf
-    return uf;
-  if(!expAllZero){ //normalized
-    if(twiceExpAllOne)
-      return sign+0x7F800000;
-    else
-      return uf+0x00800000;
+unsigned float_twice(unsigned uf) 
+{
+  int sign,exp,back;      
+  int add_sign,back_sign;  //auxiliary
+  int whether_less,whether_more;    //used to judge whether denormalized or overflow
+  int whether_advance;    //when the exp == 0, used to judge whether becomes normalized
+
+  //build constants
+  back_sign = 0xff + (0xff<<8)+(0x7f<<16);
+  add_sign = 1<<22;
+
+  //get the three parts of a float
+  sign = uf & (1<<31);
+  exp = (uf>>23)&0xff;
+  back = uf&back_sign;
+
+
+  whether_less = !exp;          //denormalized
+  whether_more = 0xff^exp;      //overflow
+  whether_advance = back&add_sign;  //used when a denormalized becomes normalized
+
+  //overflow originally
+  if(!whether_more)
+  {
+      return uf;
+  } 
+
+  if(whether_less) 
+  {
+    back = (back << 1) & back_sign; //left shift
+    if(whether_advance)
+    {
+      exp = 1;
+    }
   }
-  //denormalized
-  frac<<=1;
-  return sign+exp+frac;
+  else
+  {
+    exp = exp + 1;
+  }
+  
+
+  //renew whether overflow
+  whether_more = 0xff^exp;
+  if(!whether_more) 
+  {
+    return sign +(0xff<<23); //infinity
+  }
+  else 
+  {
+    return sign + (exp<<23)+back;  //normal
+  }
 }
-
-
-// int main(){
-//   printf("xiaojs20\n");
-//   // float_twice(5);
-//   // float_i2f(5);
-//   // float_i2f(-5);
-//   /*1084227584
-// -1063256064*/
-// /*sign: 0
-// exp: 1082130432
-// frac: 2097152
-// float: 1084227584
-// sign: -2147483648
-// exp: 1082130432
-// frac: 2097152
-// float: -1063256064*/
-//   return 0;
-// }

@@ -1,0 +1,49 @@
+# Xiao Jinsong 2020010563
+# Execution begins at address 0
+	.pos 0
+
+init:
+    irmovl Stack, %esp  # Set up Stack pointer
+	irmovl Stack, %ebp  # Set up base pointer
+	call main           # Execute main program
+    halt                # Terminate program 
+
+# Sample linked list
+    .align 4
+ele1:
+    .long 0x00a
+    .long ele2
+ele2:
+    .long 0x0b0
+    .long ele3
+ele3:
+    .long 0xc00
+    .long 0
+# END
+
+main:	
+    irmovl ele1,%edi    # ele1 is in %edi
+    call rsum_list       
+	ret
+
+/* $begin rsum-ys 0 */
+    # int rsum_list(list_ptr ls)
+rsum_list:
+    pushl %ebx
+    xorl %eax,%eax          # %eax = sum = 0
+    andl %edi,%edi
+    je end                  # if (!ls) return 0
+    mrmovl (%edi),%ebx      # %ebx  = ls->val
+    mrmovl 4(%edi),%edi     # %edi = ls->next
+    call rsum_list
+    addl %ebx, %eax         # val + rest;
+
+end:
+    popl %ebx
+    ret
+
+/* $end rsum-ys 0 */
+
+# The stack starts here and grows to lower addresses
+	.pos 0x200		
+Stack:	 

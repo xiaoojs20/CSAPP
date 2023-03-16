@@ -1,0 +1,62 @@
+# Xiao Jinsong 2020010563
+# Execution begins at address 0
+	.pos 0
+
+init:
+    irmovl Stack, %esp  # Set up Stack pointer
+	irmovl Stack, %ebp  # Set up base pointer
+	call main           # Execute main program
+    halt                # Terminate program 
+
+# Sample
+    .align 4
+# Source block
+src:
+    .long 0x00a
+    .long 0x0b0
+    .long 0xc00
+# Destination block
+dest:
+    .long 0x111
+    .long 0x222
+    .long 0x333
+# END
+
+main:	
+    irmovl src,%edi     # src is in %edi
+    irmovl dest,%esi    # dest is in %edi
+    irmovl $3,%edx      # len is in %edx
+    call copy_block       
+	ret
+
+/* $begin copy-ys 0 */
+    # int copy_block(int ⋆src, int ⋆dest, int len)
+copy_block:
+    pushl %ebx
+    pushl %ecx
+    xorl %eax,%eax  # %eax = result = 0
+
+loop:
+    andl %edx,%edx      # while (len > 0)      
+    jle end
+    mrmovl (%edi),%ebx
+    rmmovl %ebx,(%esi)
+    xorl %ebx, %eax     # result ^= val;
+
+    irmovl $4,%ecx
+    addl %ecx,%edi      # src++
+    addl %ecx,%esi      # dest++
+    irmovl $1,%ecx
+    subl %ecx,%edx      # len--
+    jmp loop            # while (len > 0)
+
+end:
+    popl %ecx
+    popl %ebx
+    ret
+
+/* $end copy-ys 0 */
+
+# The stack starts here and grows to lower addresses
+	.pos 0x200		
+Stack:	 
